@@ -1,10 +1,9 @@
 import "../styles/globals.css";
 import { ThemeProvider } from "next-themes";
-import Navbar from "../components/navbar";
 
 function MyApp({ Component, pageProps }) {
   return (
-    <ThemeProvider attribute="class">
+    <ThemeProvider attribute="data-theme">
       <Component {...pageProps} />
     </ThemeProvider>
   );

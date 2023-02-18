@@ -51,8 +51,7 @@ function Create() {
       const userData = fetchUserData();
       const name = userData[0].displayName;
       const fn = name.split(" ");
-      setFisrtName(fn[0]);
-      setRoomName(`${firstName}'s room`);
+      setRoomName(`${fn[0]}'s room`);
     }
   }, []);
 
@@ -61,19 +60,17 @@ function Create() {
       <Navbar />
       <div>
         <b>
-          <div className="text-5xl flex justify-center my-10 text-primary">
-            Create Room
+          <div className="text-4xl flex justify-center my-10 text-primary">
+            CREATE ROOM
           </div>
         </b>
 
         <div
           id="form"
-          className=" min-h-[40vh] min-w-[3vh] m-7 mt-18 select-none"
+          className=" min-h-[40vh] min-w-[3vh] m-7 mt-18 select-none lg:min-h-[40vh] lg:min-w-[3vh] "
         >
-          <div className="mb-7">
-            <label className="block mb-3 text-lg font-semibold text-gray-900 dark:text-white">
-              ROOM NAME
-            </label>
+          <div className="form-control w-full max-w-xs">
+            <label className="label">ROOM NAME</label>
             <input
               type={"text"}
               id="email"
@@ -82,33 +79,39 @@ function Create() {
                 setRoomName(e.target.value);
                 console.log(roomName);
               }}
-              className="bg-gray-50 border-2 border-gray-300 text-gray-900 text-lg rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primaryD dark:focus:border-primaryD"
+              className="input input-bordered input-primary w-full max-w-xs bg-base-200"
             ></input>
           </div>
-          <div>
-            <label className="block text-gray-900 dark:text-white font-semibold text-lg">
-              PLAYER COUNT
-            </label>
-            <div className=" flex justify-center mb-5 items-center ">
-              <p className="text-xl font-semibold m-2 text-primary">3</p>
-              <input
-                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                type={"range"}
-                min={3}
-                max={8}
-                value={players}
-                step={1}
-                onChange={changePlayers}
-              />
-              <p className="text-xl m-2 font-semibold text-primary ">8</p>
+          <label className="label mt-6">PLAYER COUNT</label>
+
+          <input
+            type="range"
+            min="3"
+            max="8"
+            className="range range-primary"
+            value={players}
+            step={1}
+            onChange={changePlayers}
+          />
+          <div className="w-full flex justify-between text-xs px-2">
+            <div className="flex-col flex items-center">
+              <span>|</span>
+              <p className="text-sm ">3</p>
+            </div>
+
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <div className="flex-col flex items-center">
+              <span>|</span>
+              <p className="text-sm ">8</p>
             </div>
           </div>
           <div>
-            <label className="block mb-4  font-semibold text-gray-900 dark:text-white text-lg">
-              ROUND TIMER
-            </label>
+            <label className="label">ROUND TIMER</label>
             <div className=" flex justify-center items-center select-none ">
-              <ul className="grid w-[95%] gap-6 grid-cols-3 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="flex justify-center items-center gap-10">
                 <li>
                   <input
                     type="radio"
@@ -120,7 +123,7 @@ function Create() {
                   />
                   <label
                     htmlFor="time-2"
-                    className="inline-flex align-middle items-center justify-center w-full p-4 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-primary peer-checked:border-primary peer-checked:text-primary hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                    className="btn btn-outline btn-primary"
                   >
                     <div className="block ">
                       <div className="w-full text-xl font-semibold">20</div>
@@ -138,7 +141,7 @@ function Create() {
                   />
                   <label
                     htmlFor="time-1"
-                    className="inline-flex items-center justify-center w-full p-4 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-primary peer-checked:border-primary peer-checked:text-primary hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                    className="btn btn-outline btn-primary"
                   >
                     <div className="block">
                       <div className="w-full text-xl font-semibold">45</div>
@@ -156,7 +159,7 @@ function Create() {
                   />
                   <label
                     htmlFor="time-3"
-                    className="inline-flex items-center justify-center w-full p-4 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-primary peer-checked:border-primary peer-checked:text-primary hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
+                    className="btn btn-outline btn-primary"
                   >
                     <div className="block">
                       <div className="w-full text-xl font-semibold">60</div>
@@ -169,10 +172,7 @@ function Create() {
         </div>
       </div>
       <div className="flex justify-center">
-        <button
-          className="px-5 py-4 bg-primary dark:bg-primaryD rounded-2xl font-semibold"
-          onClick={createRoom}
-        >
+        <button className="btn btn-primary btn-lg" onClick={createRoom}>
           CREATE
         </button>
       </div>

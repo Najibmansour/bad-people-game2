@@ -48,27 +48,27 @@ const LoginDiv = () => {
     <div className="">
       <div>
         {user ? (
-          <div className=" h-10 w-10 mr-2">
-            {/* <button
-              className="bg-primary px-3 py-2 rounded-lg"
-              onClick={signOut}
+          <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+              <div className="w-10 rounded-full">
+                <img src={user.photoURL} />
+              </div>
+            </label>
+            <ul
+              tabIndex={0}
+              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-200 rounded-box w-52"
             >
-              Sign Out
-            </button> */}
-            <img
-              className="rounded-full border-x-2 border-y-2 border-green-300"
-              src={user.photoURL}
-            />
+              <li>
+                <button onClick={signOut}>Logout</button>
+              </li>
+            </ul>
           </div>
         ) : (
           <div>
             {loading ? (
               <LoadingSpinner />
             ) : (
-              <button
-                className="bg-primary px-3 py-2 rounded-lg"
-                onClick={signIn}
-              >
+              <button className="btn btn-primary" onClick={signIn}>
                 Sign In
               </button>
             )}
