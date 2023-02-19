@@ -30,7 +30,7 @@ module.exports = {
       {
         light: {
           ...require("daisyui/src/colors/themes")["[data-theme=light]"],
-          primary: "#ed0c0c",
+          primary: "#ed0c1c",
           "primary-focus": "#c30010",
         },
       },
@@ -38,7 +38,7 @@ module.exports = {
       {
         dark: {
           ...require("daisyui/src/colors/themes")["[data-theme=dark]"],
-          primary: "#ed0c0c",
+          primary: "#ed0c1c",
           "primary-focus": "#c30010",
         },
       },

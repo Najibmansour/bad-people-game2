@@ -71,7 +71,7 @@ const LoginDiv = () => {
             {loading ? (
               <LoadingSpinner />
             ) : (
-              <button className="" onClick={signIn}>
+              <button className="btn btn-primary" onClick={signIn}>
                 Sign In
               </button>
             )}

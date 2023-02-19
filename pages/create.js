@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 //  FIREBASE FIRESTORE
 import { database, app } from "../firebase-config";
-import { collection, addDoc, getDocs, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
 // DATA FETCHING FROM LOCAL_STORAGE
 import { userAccessToken } from "../utils/fetchUserAccessToken";
 import { fetchUserData } from "../utils/fetchUserData";
@@ -22,13 +28,20 @@ function Create() {
   /////////////////////////
 
   const createRoom = async () => {
+    const dateNow = Date.now();
+    const roomIdHex = dateNow.toString(36);
+    const roomDoc = doc(collectionRef, "room");
+
     const roomConfig = {
-      maxPlayers: players,
-      roomNum: "",
-      players: [],
+      maxPlayers: parseInt(players),
+      roomNum: `${roomIdHex}`,
+      players: [{ name: "aasd" }],
+      startDate: Timestamp.fromMillis(dateNow),
+      roundTime: parseInt(timeInSec),
     };
-    const result = await getDocs(collectionRef);
-    console.log(result.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    console.log(roomConfig);
+    // const result = await getDocs(collectionRef);
+    // console.log(result.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
   };
 
   function changePlayers(e) {
@@ -115,15 +128,19 @@ function Create() {
                 <li>
                   <input
                     type="radio"
-                    id="time-2"
+                    id="time-1"
                     name="timeInSec"
                     value={20}
                     onChange={changeTime}
                     className="hidden peer"
                   />
                   <label
-                    htmlFor="time-2"
-                    className="btn btn-outline btn-primary"
+                    htmlFor="time-1"
+                    className={
+                      timeInSec == 20
+                        ? "btn btn-primary"
+                        : "btn btn-outline btn-primary"
+                    }
                   >
                     <div className="block ">
                       <div className="w-full text-xl font-semibold">20</div>
@@ -133,15 +150,19 @@ function Create() {
                 <li>
                   <input
                     type="radio"
-                    id="time-1"
+                    id="time-2"
                     name="timeInSec"
                     value={45}
                     onChange={changeTime}
                     className="hidden peer"
                   />
                   <label
-                    htmlFor="time-1"
-                    className="btn btn-outline btn-primary"
+                    htmlFor="time-2"
+                    className={
+                      timeInSec == 45
+                        ? "btn btn-primary"
+                        : "btn btn-outline btn-primary"
+                    }
                   >
                     <div className="block">
                       <div className="w-full text-xl font-semibold">45</div>
@@ -158,8 +179,12 @@ function Create() {
                     className="hidden peer"
                   />
                   <label
-                    htmlFor="time-4"
-                    className="btn btn-outline btn-primary"
+                    htmlFor="time-3"
+                    className={
+                      timeInSec == 60
+                        ? "btn btn-primary"
+                        : "btn btn-outline btn-primary"
+                    }
                   >
                     <div className="block">
                       <div className="w-full text-xl font-semibold">60</div>
@@ -172,9 +197,7 @@ function Create() {
         </div>
       </div>
       <div className="flex justify-center">
-        <button className="btn btn-primary btn-lg" onClick={createRoom}>
-          CREATE
-        </button>
+        <button className="btn btn-primary btn-lg">CREATE</button>
       </div>
     </div>
   );
