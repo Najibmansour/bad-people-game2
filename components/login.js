@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import LoadingSpinner from "./loadingSpinner";
 import {
   signInWithRedirect,
@@ -7,19 +7,19 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
-import firebase from "../firebase-config";
+import app from "../firebase-config";
 
 const LoginDiv = () => {
   const googleAuth = new GoogleAuthProvider();
-  const auth = getAuth(firebase);
+  const auth = getAuth(app);
   const [user, loading, error] = useAuthState(auth);
+  const [LOADING, setLOADING] = useState(false);
 
   googleAuth.setCustomParameters({
     prompt: "select_account",
   });
 
   const signIn = async () => {
-    console.log("signing in");
     await signInWithRedirect(auth, googleAuth).catch((err) => {
       console.error(err.message);
     });
@@ -33,14 +33,9 @@ const LoginDiv = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
   };
-  const test = () => {
-    console.log("TEST");
-  };
 
   useEffect(() => {
     if (user !== null) {
-      console.log(user);
-
       const { refreshToken, providerData } = user;
       localStorage.setItem("user", JSON.stringify(providerData));
       localStorage.setItem("accessToken", JSON.stringify(refreshToken));
@@ -71,7 +66,7 @@ const LoginDiv = () => {
             {loading ? (
               <LoadingSpinner />
             ) : (
-              <button className="btn btn-primary" onClick={signIn}>
+              <button className="btn btn-primary btn-md" onClick={signIn}>
                 Sign In
               </button>
             )}

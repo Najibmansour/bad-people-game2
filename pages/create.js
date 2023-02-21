@@ -4,19 +4,23 @@ import Navbar from "../components/navbar";
 import { database, app } from "../firebase-config";
 import {
   collection,
-  addDoc,
-  getDocs,
+  setDoc,
+  getDoc,
   doc,
   Timestamp,
+  deleteDoc,
 } from "firebase/firestore";
 // DATA FETCHING FROM LOCAL_STORAGE
 import { userAccessToken } from "../utils/fetchUserAccessToken";
 import { fetchUserData } from "../utils/fetchUserData";
 import { useRouter } from "next/router";
+import LoadingSpinner from "../components/loadingSpinner";
+import { render } from "react-dom";
+import Modal from "../components/modal";
 
 function Create() {
   const router = useRouter();
-  const [firstName, setFisrtName] = useState("");
+  const [modal, setModal] = useState([false, "", ""]);
   // ROOM CONFIG //////////
   const [players, setPlayers] = useState(3);
   const [timeInSec, setTimeInSec] = useState(20);
@@ -24,24 +28,52 @@ function Create() {
 
   /////////////////////////
   // DATABASE SHIT ////////
+  const [LOADING, setLOADING] = useState(false);
   const collectionRef = collection(database, "room");
   /////////////////////////
 
   const createRoom = async () => {
-    const dateNow = Date.now();
-    const roomIdHex = dateNow.toString(36);
-    const roomDoc = doc(collectionRef, "room");
+    setLOADING(true);
+    const user = fetchUserData();
+    const uid = user[0].uid;
+    const roomRef = doc(database, "room", `${uid}`);
 
-    const roomConfig = {
+    const roomData = {
+      isActive: true,
       maxPlayers: parseInt(players),
-      roomNum: `${roomIdHex}`,
+      roomName: `${roomName}`,
       players: [{ name: "aasd" }],
-      startDate: Timestamp.fromMillis(dateNow),
+      startDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
     };
-    console.log(roomConfig);
-    // const result = await getDocs(collectionRef);
-    // console.log(result.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+
+    const roomSnap = await getDoc(roomRef).catch((e) => {
+      setLOADING(false);
+    });
+    if (roomSnap.exists()) {
+      deleteDoc(roomRef);
+      setRoom(roomRef, roomData);
+      setLOADING(false);
+      setModal([
+        true,
+        "DONE!",
+        'Your room is now ready! Invite your "friends"!',
+        uid,
+      ]);
+    } else {
+      setRoom(roomRef, roomData);
+    }
+  };
+
+  const setRoom = async (ref, data) => {
+    await setDoc(ref, data)
+      .then(() => {})
+      .catch((error) => {});
+    setLOADING(false);
+  };
+
+  const test = () => {
+    render();
   };
 
   function changePlayers(e) {
@@ -53,7 +85,6 @@ function Create() {
   }
   function changeTime(e) {
     setTimeInSec(e.target.value);
-    console.log(timeInSec);
   }
 
   useEffect(() => {
@@ -90,7 +121,6 @@ function Create() {
               value={roomName}
               onChange={(e) => {
                 setRoomName(e.target.value);
-                console.log(roomName);
               }}
               className="input input-bordered input-primary w-full max-w-xs bg-base-200"
             ></input>
@@ -100,7 +130,7 @@ function Create() {
           <input
             type="range"
             min="3"
-            max="8"
+            max="9"
             className="range range-primary"
             value={players}
             step={1}
@@ -111,14 +141,17 @@ function Create() {
               <span>|</span>
               <p className="text-sm ">3</p>
             </div>
-
-            <span>|</span>
-            <span>|</span>
             <span>|</span>
             <span>|</span>
             <div className="flex-col flex items-center">
               <span>|</span>
-              <p className="text-sm ">8</p>
+              <p className="text-xs ">6</p>
+            </div>
+            <span>|</span>
+            <span>|</span>
+            <div className="flex-col flex items-center">
+              <span>|</span>
+              <p className="text-sm ">9</p>
             </div>
           </div>
           <div>
@@ -197,8 +230,23 @@ function Create() {
         </div>
       </div>
       <div className="flex justify-center">
-        <button className="btn btn-primary btn-lg">CREATE</button>
+        <button
+          className={
+            LOADING
+              ? "btn btn-primary btn-lg w-32 btn-disabled "
+              : "btn btn-primary btn-lg w-32"
+          }
+          onClick={createRoom}
+        >
+          {LOADING ? <LoadingSpinner /> : <p>CREATE</p>}
+        </button>
       </div>
+      <Modal
+        text={modal[2]}
+        title={modal[1]}
+        isEnabled={modal[0]}
+        roomId={modal[3]}
+      ></Modal>
     </div>
   );
 }

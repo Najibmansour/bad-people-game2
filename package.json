@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "copy-to-clipboard": "^3.3.3",
     "daisyui": "^2.50.1",
     "firebase": "^9.17.1",
     "framer-motion": "^9.0.4",

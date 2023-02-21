@@ -1,23 +1,37 @@
-import LogButton from "../components/buttons/logButton";
 import Navbar from "../components/navbar";
-import Link from "next/link";
-import { Theme, Button } from "daisyui";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import LoginDiv from "../components/login";
+import { app } from "../firebase-config";
+import { getAuth } from "firebase/auth";
 
 export default function Home() {
-  const test = () => {
-    console.log("TEST");
-  };
-
+  const auth = getAuth();
+  const [token, setToken] = useState();
   const router = useRouter();
+
+  const [user, loading, error] = useAuthState(auth);
+
+  useEffect(() => {
+    if (user !== null) {
+      setToken(true);
+    } else {
+      setToken(false);
+    }
+  }, [user]);
 
   return (
     <div>
-      <Navbar />
+      <Navbar>
+        <LoginDiv />
+      </Navbar>
       <div className="flex h-[70vh] justify-center items-center">
         <div className="text-center flex flex-col align-middle">
           <button
-            className="btn btn-lg mb-8 "
+            className={
+              token ? "btn btn-lg mb-8" : "btn btn-lg btn-disabled mb-8 "
+            }
             onClick={() => {
               router.push("/create");
             }}
@@ -25,7 +39,9 @@ export default function Home() {
             CREATE ROOM
           </button>
           <button
-            className="btn btn-lg mb-8"
+            className={
+              token ? "btn btn-lg mb-8" : "btn btn-lg btn-disabled mb-8 "
+            }
             onClick={() => {
               router.push("/create");
             }}

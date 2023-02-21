@@ -9,28 +9,16 @@ function Rooms() {
   const [rooms, setRooms] = useState([]);
   const roomsCollectionRef = collection(database, "room");
   const q = query(roomsCollectionRef, where("roomNum", "==", `${roomId}`));
+
   useEffect(() => {
     const getRoom = async () => {
       const querySnapshot = await getDocs(q).catch((err) => {
         console.error(`ERROR => ${err.message}`);
       });
-      querySnapshot.forEach((doc) => {
-        console.log(doc.id, " => ", doc.data());
-      });
+      querySnapshot.forEach((doc) => {});
     };
     getRoom();
   }, [router.isReady]);
-
-  // useEffect(() => {
-  //   const getRooms = async () => {
-  //     const data = await getDocs(q);
-  //     setRooms(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-  //   };
-
-  //   getRooms();
-
-  //   console.log(rooms);
-  // }, []);
 
   return (
     <div>
@@ -40,7 +28,7 @@ function Rooms() {
           console.log(rooms);
         }}
       >
-        BALU BALU FALU
+        hi
       </button>
     </div>
   );
