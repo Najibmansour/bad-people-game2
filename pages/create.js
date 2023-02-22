@@ -9,14 +9,19 @@ import {
   doc,
   Timestamp,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 // DATA FETCHING FROM LOCAL_STORAGE
-import { userAccessToken } from "../utils/fetchUserAccessToken";
+import {
+  fetchUserAccessToken,
+  userAccessToken,
+} from "../utils/fetchUserAccessToken";
 import { fetchUserData } from "../utils/fetchUserData";
 import { useRouter } from "next/router";
 import LoadingSpinner from "../components/loadingSpinner";
 import { render } from "react-dom";
 import Modal from "../components/modal";
+import { AuthErrorCodes } from "firebase/auth";
 
 function Create() {
   const router = useRouter();
@@ -42,17 +47,17 @@ function Create() {
       isActive: true,
       maxPlayers: parseInt(players),
       roomName: `${roomName}`,
-      players: [{ name: "aasd" }],
+      players: {},
       startDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
     };
 
     const roomSnap = await getDoc(roomRef).catch((e) => {
+      console.error(e);
       setLOADING(false);
     });
     if (roomSnap.exists()) {
-      deleteDoc(roomRef);
-      setRoom(roomRef, roomData);
+      updateDoc(roomRef, roomData);
       setLOADING(false);
       setModal([
         true,
@@ -88,7 +93,7 @@ function Create() {
   }
 
   useEffect(() => {
-    const accessToken = userAccessToken();
+    const accessToken = fetchUserAccessToken();
     if (!accessToken) {
       router.push("/");
     } else {

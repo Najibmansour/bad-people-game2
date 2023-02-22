@@ -1,4 +1,4 @@
-export const userAccessToken = () => {
+export const fetchUserAccessToken = () => {
   const accessToken =
     localStorage.getItem("accessToken") !== "undefined"
       ? JSON.parse(localStorage.getItem("accessToken"))
