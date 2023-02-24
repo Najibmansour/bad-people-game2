@@ -47,7 +47,7 @@ function Create() {
       isActive: true,
       maxPlayers: parseInt(players),
       roomName: `${roomName}`,
-      players: {},
+      players: [],
       startDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
     };

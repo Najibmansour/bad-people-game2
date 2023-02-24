@@ -8,6 +8,7 @@ import {
   where,
   updateDoc,
   deleteDoc,
+  getDoc,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -19,41 +20,37 @@ function Rooms() {
   const router = useRouter();
   const roomId = router.query.roomId;
   const roomsCollectionRef = collection(database, "room");
-  const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
-  const [players, setPlayers] = useState(["asd"]);
+
+  // const q = query(database, "room", `${roomId}`);
+
+  const [players, setPlayers] = useState();
   const [user, loading, error] = useAuthState(getAuth());
-  const [roomSnapshot, setRoomSnapshot] = useState();
+  const [roomSnapshot, setRoomSnapshot] = useState({});
   const roomRef = doc(database, "room", `${roomId}`);
 
   useEffect(() => {
-    onSnapshot(q, (snapshot) => {
+    const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
+    console.log(q);
+    const unsub = onSnapshot(q, (snapshot) => {
+      // console.log(snapshot.docs[0].get("players"));
       snapshot.docs.forEach((doc) => {
-        console.log(doc.data());
         setRoomSnapshot(doc.data());
-        const players = Object.entries(doc.data().players);
-        // console.log(players[0][1]);
+        setPlayers(doc.data().players);
       });
     });
-  }, []);
+    return unsub;
+  }, [router.isReady]);
 
-  const arrayFuck = async () => {
-    const playerSnap = roomSnapshot.players;
-    console.log(roomSnapshot);
-    if (roomSnapshot.maxPlayers > Object.keys(roomSnapshot.players).length) {
-      if (
-        !Object.keys(roomSnapshot.players).includes(
-          `${user.providerData[0].uid}`
-        )
-      ) {
-        const newPlayer = Object.assign(playerSnap, {
-          [user.providerData[0].uid]: {
-            name: `${user.providerData[0].displayName}`,
-            photoUrl: "asddsaasdasdsdaasd",
-          },
-        });
-        const newRoom = Object.assign(roomSnapshot, { players: newPlayer });
-        console.log(newRoom);
-        updateDoc(roomRef, newRoom);
+  const arrayFuck = () => {
+    if (roomSnapshot.maxPlayers > roomSnapshot.players.length) {
+      if (!roomSnapshot.players.includes(`${user.providerData[0].uid}`)) {
+        const newPlayer = {
+          uid: `${user.providerData[0].uid}`,
+          name: `${user.providerData[0].displayName}`,
+          photoUrl: "asddsaasdasdsdaasd",
+        };
+        console.log("addfuck");
+        updateDoc(roomRef, { players: arrayUnion(newPlayer) });
       } else {
         console.log("player exist"); // @DEV add modal error if player already in session
       }
@@ -64,19 +61,29 @@ function Rooms() {
 
   const handleUserLeave = () => {
     const snap = roomSnapshot;
-    delete snap.players[`${user.providerData[0].uid}`];
+    // delete snap.players[`${user.providerData[0].uid}`];
     console.log(snap);
-    // deleteDoc(roomRef,);
+    // deleteDoc(roomRef, snap);
   };
 
   return (
     <div>
       {roomSnapshot != "undefined" ? (
         <div>
-          <h1>{players}</h1>
+          <h1>
+            {players ? players.map((player) => <p>{player.name}</p>) : null}
+          </h1>
           <div>hi</div>
           <button className="btn btn-primary" onClick={arrayFuck}>
             addfuck
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              console.log(roomSnapshot);
+            }}
+          >
+            players
           </button>
           <button className="btn btn-primary" onClick={handleUserLeave}>
             log user
