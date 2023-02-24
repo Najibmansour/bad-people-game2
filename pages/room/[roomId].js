@@ -20,40 +20,37 @@ function Rooms() {
   const router = useRouter();
   const roomId = router.query.roomId;
   const roomsCollectionRef = collection(database, "room");
-
-  // const q = query(database, "room", `${roomId}`);
-
   const [players, setPlayers] = useState();
+
   const [user, loading, error] = useAuthState(getAuth());
+
   const [roomSnapshot, setRoomSnapshot] = useState({});
   const roomRef = doc(database, "room", `${roomId}`);
 
   useEffect(() => {
     const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
-    console.log(q);
     const unsub = onSnapshot(q, (snapshot) => {
       // console.log(snapshot.docs[0].get("players"));
       snapshot.docs.forEach((doc) => {
         setRoomSnapshot(doc.data());
         setPlayers(doc.data().players);
+        arrayFuck(doc.data());
       });
     });
     return unsub;
   }, [router.isReady]);
 
-  const arrayFuck = () => {
+  const arrayFuck = (roomSnapshot) => {
+    const user = fetchUserData();
+    console.log(user);
     if (roomSnapshot.maxPlayers > roomSnapshot.players.length) {
-      if (!roomSnapshot.players.includes(`${user.providerData[0].uid}`)) {
-        const newPlayer = {
-          uid: `${user.providerData[0].uid}`,
-          name: `${user.providerData[0].displayName}`,
-          photoUrl: "asddsaasdasdsdaasd",
-        };
-        console.log("addfuck");
-        updateDoc(roomRef, { players: arrayUnion(newPlayer) });
-      } else {
-        console.log("player exist"); // @DEV add modal error if player already in session
-      }
+      const newPlayer = {
+        uid: `${user[0].uid}`,
+        name: `${user[0].displayName}`,
+        photoUrl: "asddsaasdasdsdaasd",
+      };
+      console.log("addfuck");
+      updateDoc(roomRef, { players: arrayUnion(newPlayer) });
     } else {
       console.log("room is full"); // @DEV add modal if room is full
     }
@@ -71,7 +68,13 @@ function Rooms() {
       {roomSnapshot != "undefined" ? (
         <div>
           <h1>
-            {players ? players.map((player) => <p>{player.name}</p>) : null}
+            {players
+              ? players.map((player) => (
+                  <div className="card" key={player.uid}>
+                    {player.name}
+                  </div>
+                ))
+              : null}
           </h1>
           <div>hi</div>
           <button className="btn btn-primary" onClick={arrayFuck}>

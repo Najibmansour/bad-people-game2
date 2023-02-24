@@ -48,7 +48,7 @@ const LoginDiv = () => {
         {user ? (
           <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
-              <div className="w-10 rounded-full">
+              <div className="w-10 rounded-full  ring-2 ring-primary ring-offset-base-100 ring-offset-2">
                 <img src={user.photoURL} />
               </div>
             </label>

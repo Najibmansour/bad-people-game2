@@ -2,15 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 //  FIREBASE FIRESTORE
 import { database, app } from "../firebase-config";
-import {
-  collection,
-  setDoc,
-  getDoc,
-  doc,
-  Timestamp,
-  deleteDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { setDoc, getDoc, doc, Timestamp, updateDoc } from "firebase/firestore";
 // DATA FETCHING FROM LOCAL_STORAGE
 import {
   fetchUserAccessToken,
@@ -34,7 +26,6 @@ function Create() {
   /////////////////////////
   // DATABASE SHIT ////////
   const [LOADING, setLOADING] = useState(false);
-  const collectionRef = collection(database, "room");
   /////////////////////////
 
   const createRoom = async () => {
@@ -52,22 +43,14 @@ function Create() {
       roundTime: parseInt(timeInSec),
     };
 
-    const roomSnap = await getDoc(roomRef).catch((e) => {
-      console.error(e);
-      setLOADING(false);
-    });
-    if (roomSnap.exists()) {
-      updateDoc(roomRef, roomData);
-      setLOADING(false);
-      setModal([
-        true,
-        "DONE!",
-        'Your room is now ready! Invite your "friends"!',
-        uid,
-      ]);
-    } else {
-      setRoom(roomRef, roomData);
-    }
+    setDoc(roomRef, roomData);
+    setLOADING(false);
+    setModal([
+      true,
+      "DONE!",
+      'Your room is now ready! Invite your "friends"!',
+      uid,
+    ]);
   };
 
   const setRoom = async (ref, data) => {
@@ -75,10 +58,6 @@ function Create() {
       .then(() => {})
       .catch((error) => {});
     setLOADING(false);
-  };
-
-  const test = () => {
-    render();
   };
 
   function changePlayers(e) {
