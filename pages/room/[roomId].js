@@ -10,6 +10,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import ChoseAvatar from "../../components/chooseAvatar";
@@ -46,7 +47,7 @@ function Rooms() {
 
   const [user, loading, error] = useAuthState(getAuth());
 
-  const [roomSnapshot, setRoomSnapshot] = useState({});
+  const [roomSnapshot, setRoomSnapshot] = useState();
   const roomRef = doc(database, "room", `${roomId}`);
 
   const [avatarId, setAvatarId] = useState(0);
@@ -107,30 +108,40 @@ function Rooms() {
     <div>
       {roomSnapshot ? (
         <div>
-          <div>
-            <ChoseAvatar
-              setAvatarId={setAvatarId}
-              avatarId={avatarId}
-              submitAvatar={submitAvatar}
-              title="Choose Your Avatar"
-              images={images}
-            />
-          </div>
-          <div>
-            {roomSnapshot.players
-              ? roomSnapshot.players.map((player) => (
-                  <div className="card w-96 bg-base-200 shadow-xl">
-                    <div className="card-body">
-                      <h2 className="card-title">{player.name}</h2>
-                    </div>
-                    <figure>
-                      <img src={images[player.avatarID]} alt="avatar" />
-                    </figure>
+          {roomSnapshot ? (
+            <div>
+              <ChoseAvatar
+                setAvatarId={setAvatarId}
+                avatarId={avatarId}
+                submitAvatar={submitAvatar}
+                title="Choose Your Avatar"
+                images={images}
+              />
+            </div>
+          ) : null}
+          <div className="grid grid-flow-row grid-cols-4 gap-3">
+            {roomSnapshot ? (
+              roomSnapshot.players?.map((player, i) => (
+                <div className="rounded-md shadow-xl p-2 bg-base-200">
+                  <figure>
+                    <Image
+                      className="rounded-md"
+                      src={images[player.avatarID]}
+                      alt={`avatar-${i}`}
+                      key={`avatar-${i}`}
+                    />
+                  </figure>
+                  <div className="">
+                    <h2 className="">{player.name}</h2>
                   </div>
-                ))
-              : null}
+                </div>
+              ))
+            ) : (
+              <p>no room snap</p>
+            )}
           </div>
           <div>hi</div>
+
           <button className="btn btn-primary" onClick={arrayFuck}>
             addfuck
           </button>

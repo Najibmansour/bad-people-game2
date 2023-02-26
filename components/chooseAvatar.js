@@ -1,14 +1,7 @@
 import Image from "next/image";
 import React, { useState } from "react";
 
-function ChoseAvatar({
-  setAvatarId,
-  avatarId,
-  title,
-  submitAvatar,
-  images,
-  alreadySelectedAvatars,
-}) {
+function ChoseAvatar({ setAvatarId, avatarId, title, submitAvatar, images }) {
   const [isOpen, setOpen] = useState(true);
 
   function changeAvatar(e) {
