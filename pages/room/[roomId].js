@@ -8,13 +8,36 @@ import {
   where,
   updateDoc,
   deleteDoc,
-  getDoc,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
+import ChoseAvatar from "../../components/chooseAvatar";
 import { firebase, database } from "../../firebase-config";
 import { fetchUserData } from "../../utils/fetchUserData";
+
+import AVAfat from "../../public/avatars/fat.webp";
+import AVAalcoholic from "../../public/avatars/alcoholic.webp";
+import AVAbong from "../../public/avatars/bong.webp";
+import AVAcats from "../../public/avatars/cats.webp";
+import AVAcreep from "../../public/avatars/creep.webp";
+import AVAgangster from "../../public/avatars/gangster.webp";
+import AVAgolddigger from "../../public/avatars/golddigger.webp";
+import AVAkidnapper from "../../public/avatars/kidnapper.webp";
+import AVApedo from "../../public/avatars/pedo.webp";
+import AVAwaiter from "../../public/avatars/waiter.webp";
+
+const useUnload = (fn) => {
+  const cb = React.useRef(fn);
+
+  React.useEffect(() => {
+    const onUnload = cb.current;
+    window.addEventListener("beforeunload", onUnload);
+    return () => {
+      window.removeEventListener("beforeunload", onUnload);
+    };
+  }, [cb]);
+};
 
 function Rooms() {
   const router = useRouter();
@@ -27,10 +50,11 @@ function Rooms() {
   const [roomSnapshot, setRoomSnapshot] = useState({});
   const roomRef = doc(database, "room", `${roomId}`);
 
+  const [avatarId, setAvatarId] = useState(0);
+
   useEffect(() => {
     const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
     const unsub = onSnapshot(q, (snapshot) => {
-      // console.log(snapshot.docs[0].get("players"));
       snapshot.docs.forEach((doc) => {
         setRoomSnapshot(doc.data());
         setPlayers(doc.data().players);
@@ -40,16 +64,24 @@ function Rooms() {
     return unsub;
   }, [router.isReady]);
 
+  useUnload((e) => {
+    e.preventDefault();
+    const existingPlayer = {
+      uid: `${user[0].uid}`,
+      name: `${user[0].displayName}`,
+      photoUrl: "asddsaasdasdsdaasd",
+    };
+    deleteDoc();
+  });
+
   const arrayFuck = (roomSnapshot) => {
     const user = fetchUserData();
-    console.log(user);
     if (roomSnapshot.maxPlayers > roomSnapshot.players.length) {
       const newPlayer = {
         uid: `${user[0].uid}`,
         name: `${user[0].displayName}`,
         photoUrl: "asddsaasdasdsdaasd",
       };
-      console.log("addfuck");
       updateDoc(roomRef, { players: arrayUnion(newPlayer) });
     } else {
       console.log("room is full"); // @DEV add modal if room is full
@@ -63,9 +95,26 @@ function Rooms() {
     // deleteDoc(roomRef, snap);
   };
 
+  const submitAvatar = () => {
+    console.log(avatarId);
+  };
+
+  const images = [
+    AVAalcoholic,
+    AVAbong,
+    AVAcats,
+    AVAcreep,
+    AVAfat,
+    AVAgangster,
+    AVAgolddigger,
+    AVAkidnapper,
+    AVApedo,
+    AVAwaiter,
+  ];
+
   return (
     <div>
-      {roomSnapshot != "undefined" ? (
+      {!roomSnapshot ? (
         <div>
           <h1>
             {players
@@ -93,14 +142,15 @@ function Rooms() {
           </button>
         </div>
       ) : (
-        <button
-          className="btn"
-          onClick={() => {
-            console.log(roomSnapshot);
-          }}
-        >
-          huh
-        </button>
+        <div>
+          <ChoseAvatar
+            setAvatarId={setAvatarId}
+            avatarId={avatarId}
+            submitAvatar={submitAvatar}
+            title="Choose Your Avatar"
+            images={images}
+          />
+        </div>
       )}
     </div>
   );

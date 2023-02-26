@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import LoginDiv from "../components/login";
-import { app } from "../firebase-config";
 import { getAuth } from "firebase/auth";
 
 export default function Home() {

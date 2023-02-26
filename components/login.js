@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import LoadingSpinner from "./loadingSpinner";
-import {
-  signInWithRedirect,
-  GoogleAuthProvider,
-  getAuth,
-  signInWithPopup,
-} from "firebase/auth";
+import { signInWithRedirect, GoogleAuthProvider, getAuth } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 import app from "../firebase-config";
 

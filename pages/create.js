@@ -1,19 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
-//  FIREBASE FIRESTORE
-import { database, app } from "../firebase-config";
-import { setDoc, getDoc, doc, Timestamp, updateDoc } from "firebase/firestore";
-// DATA FETCHING FROM LOCAL_STORAGE
-import {
-  fetchUserAccessToken,
-  userAccessToken,
-} from "../utils/fetchUserAccessToken";
+import { database } from "../firebase-config";
+import { setDoc, doc, Timestamp } from "firebase/firestore";
+import { fetchUserAccessToken } from "../utils/fetchUserAccessToken";
 import { fetchUserData } from "../utils/fetchUserData";
 import { useRouter } from "next/router";
 import LoadingSpinner from "../components/loadingSpinner";
-import { render } from "react-dom";
 import Modal from "../components/modal";
-import { AuthErrorCodes } from "firebase/auth";
 
 function Create() {
   const router = useRouter();
@@ -22,8 +15,6 @@ function Create() {
   const [players, setPlayers] = useState(3);
   const [timeInSec, setTimeInSec] = useState(20);
   const [roomName, setRoomName] = useState("");
-
-  /////////////////////////
   // DATABASE SHIT ////////
   const [LOADING, setLOADING] = useState(false);
   /////////////////////////
@@ -51,13 +42,6 @@ function Create() {
       'Your room is now ready! Invite your "friends"!',
       uid,
     ]);
-  };
-
-  const setRoom = async (ref, data) => {
-    await setDoc(ref, data)
-      .then(() => {})
-      .catch((error) => {});
-    setLOADING(false);
   };
 
   function changePlayers(e) {
@@ -160,7 +144,7 @@ function Create() {
                     }
                   >
                     <div className="block ">
-                      <div className="w-full text-xl font-semibold">20</div>
+                      <div className="w-full text-xl font-semibold">20s</div>
                     </div>
                   </label>
                 </li>
@@ -182,7 +166,7 @@ function Create() {
                     }
                   >
                     <div className="block">
-                      <div className="w-full text-xl font-semibold">45</div>
+                      <div className="w-full text-xl font-semibold">45s</div>
                     </div>
                   </label>
                 </li>
@@ -204,7 +188,7 @@ function Create() {
                     }
                   >
                     <div className="block">
-                      <div className="w-full text-xl font-semibold">60</div>
+                      <div className="w-full text-xl font-semibold">60s</div>
                     </div>
                   </label>
                 </li>
