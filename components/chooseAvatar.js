@@ -1,13 +1,19 @@
 import Image from "next/image";
 import React, { useState } from "react";
-import ThemeSwitcher from "./themeSwitcher";
 
-function ChoseAvatar({ setAvatarId, avatarId, title, submitAvatar, images }) {
+function ChoseAvatar({
+  setAvatarId,
+  avatarId,
+  title,
+  submitAvatar,
+  images,
+  alreadySelectedAvatars,
+}) {
   const [isOpen, setOpen] = useState(true);
 
   function changeAvatar(e) {
     setAvatarId(e.target.value);
-    console.log(avatarId);
+    // console.log(avatarId);
   }
 
   return (

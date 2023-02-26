@@ -43,7 +43,6 @@ function Rooms() {
   const router = useRouter();
   const roomId = router.query.roomId;
   const roomsCollectionRef = collection(database, "room");
-  const [players, setPlayers] = useState();
 
   const [user, loading, error] = useAuthState(getAuth());
 
@@ -57,8 +56,6 @@ function Rooms() {
     const unsub = onSnapshot(q, (snapshot) => {
       snapshot.docs.forEach((doc) => {
         setRoomSnapshot(doc.data());
-        setPlayers(doc.data().players);
-        arrayFuck(doc.data());
       });
     });
     return unsub;
@@ -71,7 +68,6 @@ function Rooms() {
       name: `${user[0].displayName}`,
       photoUrl: "asddsaasdasdsdaasd",
     };
-    deleteDoc();
   });
 
   const arrayFuck = (roomSnapshot) => {
@@ -81,6 +77,7 @@ function Rooms() {
         uid: `${user[0].uid}`,
         name: `${user[0].displayName}`,
         photoUrl: "asddsaasdasdsdaasd",
+        avatarID: avatarId,
       };
       updateDoc(roomRef, { players: arrayUnion(newPlayer) });
     } else {
@@ -88,15 +85,9 @@ function Rooms() {
     }
   };
 
-  const handleUserLeave = () => {
-    const snap = roomSnapshot;
-    // delete snap.players[`${user.providerData[0].uid}`];
-    console.log(snap);
-    // deleteDoc(roomRef, snap);
-  };
-
   const submitAvatar = () => {
-    console.log(avatarId);
+    console.log(roomSnapshot);
+    arrayFuck(roomSnapshot);
   };
 
   const images = [
@@ -114,17 +105,31 @@ function Rooms() {
 
   return (
     <div>
-      {!roomSnapshot ? (
+      {roomSnapshot ? (
         <div>
-          <h1>
-            {players
-              ? players.map((player) => (
-                  <div className="card" key={player.uid}>
-                    {player.name}
+          <div>
+            <ChoseAvatar
+              setAvatarId={setAvatarId}
+              avatarId={avatarId}
+              submitAvatar={submitAvatar}
+              title="Choose Your Avatar"
+              images={images}
+            />
+          </div>
+          <div>
+            {roomSnapshot.players
+              ? roomSnapshot.players.map((player) => (
+                  <div className="card w-96 bg-base-200 shadow-xl">
+                    <div className="card-body">
+                      <h2 className="card-title">{player.name}</h2>
+                    </div>
+                    <figure>
+                      <img src={images[player.avatarID]} alt="avatar" />
+                    </figure>
                   </div>
                 ))
               : null}
-          </h1>
+          </div>
           <div>hi</div>
           <button className="btn btn-primary" onClick={arrayFuck}>
             addfuck
@@ -137,21 +142,9 @@ function Rooms() {
           >
             players
           </button>
-          <button className="btn btn-primary" onClick={handleUserLeave}>
-            log user
-          </button>
+          <button className="btn btn-primary">log user</button>
         </div>
-      ) : (
-        <div>
-          <ChoseAvatar
-            setAvatarId={setAvatarId}
-            avatarId={avatarId}
-            submitAvatar={submitAvatar}
-            title="Choose Your Avatar"
-            images={images}
-          />
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
