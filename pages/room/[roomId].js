@@ -8,6 +8,7 @@ import {
   where,
   updateDoc,
   deleteDoc,
+  arrayRemove,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -27,18 +28,7 @@ import AVAgolddigger from "../../public/avatars/golddigger.webp";
 import AVAkidnapper from "../../public/avatars/kidnapper.webp";
 import AVApedo from "../../public/avatars/pedo.webp";
 import AVAwaiter from "../../public/avatars/waiter.webp";
-
-const useUnload = (fn) => {
-  const cb = React.useRef(fn);
-
-  React.useEffect(() => {
-    const onUnload = cb.current;
-    window.addEventListener("beforeunload", onUnload);
-    return () => {
-      window.removeEventListener("beforeunload", onUnload);
-    };
-  }, [cb]);
-};
+import LoadingSpinner from "../../components/loadingSpinner";
 
 function Rooms() {
   const router = useRouter();
@@ -46,38 +36,60 @@ function Rooms() {
   const roomsCollectionRef = collection(database, "room");
 
   const [user, loading, error] = useAuthState(getAuth());
+  const [canSelect, setCanSelect] = useState(false);
 
   const [roomSnapshot, setRoomSnapshot] = useState();
   const roomRef = doc(database, "room", `${roomId}`);
 
   const [avatarId, setAvatarId] = useState(0);
+  const [vote, setVote] = useState(0);
+
+  const useUnload = (fn) => {
+    const cb = React.useRef(fn);
+
+    React.useEffect(() => {
+      const onUnload = cb.current;
+      window.addEventListener("beforeunload", onUnload);
+      return () => {
+        window.removeEventListener("beforeunload", onUnload);
+      };
+    }, [cb]);
+  };
 
   useEffect(() => {
     const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
+    const indexes = [];
     const unsub = onSnapshot(q, (snapshot) => {
       snapshot.docs.forEach((doc) => {
         setRoomSnapshot(doc.data());
+        const index = doc
+          .data()
+          .players.findIndex(
+            (player) => player.uid == user.providerData[0].uid
+          );
+        index == -1 ? setCanSelect(true) : null;
       });
     });
     return unsub;
-  }, [router.isReady]);
+  }, [router.isReady, user]);
 
-  useUnload((e) => {
-    e.preventDefault();
+  const delPlayer = () => {
+    const user = fetchUserData();
+
     const existingPlayer = {
       uid: `${user[0].uid}`,
       name: `${user[0].displayName}`,
-      photoUrl: "asddsaasdasdsdaasd",
+      avatarID: avatarId,
     };
-  });
+    updateDoc(roomRef, { players: arrayRemove(existingPlayer) });
+  };
 
-  const arrayFuck = (roomSnapshot) => {
+  const addPlayer = (roomSnapshot) => {
     const user = fetchUserData();
     if (roomSnapshot.maxPlayers > roomSnapshot.players.length) {
       const newPlayer = {
         uid: `${user[0].uid}`,
         name: `${user[0].displayName}`,
-        photoUrl: "asddsaasdasdsdaasd",
         avatarID: avatarId,
       };
       updateDoc(roomRef, { players: arrayUnion(newPlayer) });
@@ -88,7 +100,17 @@ function Rooms() {
 
   const submitAvatar = () => {
     console.log(roomSnapshot);
-    arrayFuck(roomSnapshot);
+    addPlayer(roomSnapshot);
+  };
+
+  const addTest = () => {
+    const uid = Date.now();
+    const newPlayer = {
+      uid: `${uid}`,
+      name: `TEST PLAYER`,
+      avatarID: "5",
+    };
+    updateDoc(roomRef, { players: arrayUnion(newPlayer) });
   };
 
   const images = [
@@ -104,58 +126,76 @@ function Rooms() {
     AVAwaiter,
   ];
 
+  function changeVote(e) {
+    setVote(e.target.value);
+    console.log(vote);
+  }
+
   return (
     <div>
-      {roomSnapshot ? (
-        <div>
-          {roomSnapshot ? (
-            <div>
-              <ChoseAvatar
-                setAvatarId={setAvatarId}
-                avatarId={avatarId}
-                submitAvatar={submitAvatar}
-                title="Choose Your Avatar"
-                images={images}
-              />
-            </div>
-          ) : null}
-          <div className="grid grid-flow-row grid-cols-4 gap-3">
-            {roomSnapshot ? (
-              roomSnapshot.players?.map((player, i) => (
-                <div className="rounded-md shadow-xl p-2 bg-base-200">
-                  <figure>
-                    <Image
-                      className="rounded-md"
-                      src={images[player.avatarID]}
-                      alt={`avatar-${i}`}
-                      key={`avatar-${i}`}
-                    />
-                  </figure>
-                  <div className="">
-                    <h2 className="">{player.name}</h2>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>no room snap</p>
-            )}
+      {!loading ? (
+        <>
+          <div className="flex flex-col justify-cente items-center ">
+            asdasda
           </div>
-          <div>hi</div>
-
-          <button className="btn btn-primary" onClick={arrayFuck}>
-            addfuck
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              console.log(roomSnapshot);
-            }}
-          >
-            players
-          </button>
-          <button className="btn btn-primary">log user</button>
+          <div className="m-1 justify-end absolute bottom-0">
+            {canSelect ? (
+              <div>
+                <ChoseAvatar
+                  setAvatarId={setAvatarId}
+                  avatarId={avatarId}
+                  submitAvatar={submitAvatar}
+                  title="Choose Your Avatar"
+                  images={images}
+                />
+              </div>
+            ) : null}
+            <div>
+              <button className="btn btn-primary" onClick={addTest}>
+                asdasd
+              </button>
+              {roomSnapshot ? (
+                <div className="grid grid-cols-[repeat(4,minmax(10px,500px))] gap-1">
+                  {roomSnapshot.players?.map((player, i) => (
+                    <div
+                      className="rounded-md shadow-xl p-2 bg-base-300 h-full"
+                      key={`avatar-${i}`}
+                    >
+                      <label id={i} htmlFor={`avatar-${i}`}>
+                        <Image
+                          className="rounded-md"
+                          src={images[player.avatarID]}
+                          alt={`avatar-${i}`}
+                          key={`avatar-${i}`}
+                        />
+                        <div>
+                          <h2 className="truncate">{player.name}</h2>
+                        </div>
+                      </label>
+                      <input
+                        type="radio"
+                        id={`avatar-${i}`}
+                        name="avatar"
+                        value={player.uid}
+                        onChange={changeVote}
+                        className="hidden"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col justify-center w- items-center h-[80vh]">
+                  <LoadingSpinner size="10" />
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col justify-center w- items-center h-[80vh]">
+          <LoadingSpinner size="10" />
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

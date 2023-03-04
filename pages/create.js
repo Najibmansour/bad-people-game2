@@ -27,6 +27,7 @@ function Create() {
 
     const roomData = {
       isActive: true,
+      owner: user.uid,
       maxPlayers: parseInt(players),
       roomName: `${roomName}`,
       players: [],
@@ -206,7 +207,7 @@ function Create() {
           }
           onClick={createRoom}
         >
-          {LOADING ? <LoadingSpinner /> : <p>CREATE</p>}
+          {LOADING ? <LoadingSpinner size={8} /> : <p>CREATE</p>}
         </button>
       </div>
       <Modal
