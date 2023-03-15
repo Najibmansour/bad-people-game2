@@ -151,9 +151,7 @@ function Rooms() {
               </div>
             ) : null}
             <div>
-              <button className="btn btn-primary" onClick={addTest}>
-                asdasd
-              </button>
+              
               {roomSnapshot ? (
                 <div className="grid grid-cols-[repeat(4,minmax(10px,500px))] gap-1">
                   {roomSnapshot.players?.map((player, i) => (
