@@ -12,7 +12,9 @@ function Create() {
   const router = useRouter();
   const [modal, setModal] = useState([false, "", ""]);
   // ROOM CONFIG //////////
-  const [players, setPlayers] = useState(3);
+  const [players, setPlayers] = useState(7);
+  const [questions, setQuestions] = useState(10);
+
   const [timeInSec, setTimeInSec] = useState(20);
   const [roomName, setRoomName] = useState("");
   // DATABASE SHIT ////////
@@ -24,14 +26,16 @@ function Create() {
     const user = fetchUserData();
     const uid = user[0].uid;
     const roomRef = doc(database, "room", `${uid}`);
-
+    // console.log(uid);
     const roomData = {
-      isActive: true,
-      owner: user.uid,
+      state: "started",
+      owner: uid,
       maxPlayers: parseInt(players),
       roomName: `${roomName}`,
+      questions: genQuestionsArray(questions),
+      questionsTime: [],
       players: [],
-      startDate: Timestamp.fromMillis(Date.now()),
+      createDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
     };
 
@@ -45,8 +49,25 @@ function Create() {
     ]);
   };
 
+  const genQuestionsArray = (questNum) => {
+    const arr = [];
+
+    for (let i = 0; i < questNum; i++) {
+      arr.push(
+        Math.floor(
+          Math.random() * (Math.floor(159) - Math.ceil(0)) + Math.ceil(0)
+        )
+      );
+    }
+    return arr;
+  };
+
   function changePlayers(e) {
     setPlayers(e.target.value);
+  }
+
+  function changeQuestions(e) {
+    setQuestions(e.target.value);
   }
 
   function changePlayers(e) {
@@ -94,33 +115,70 @@ function Create() {
               className="input input-bordered input-primary w-full max-w-xs bg-base-200"
             ></input>
           </div>
-          <label className="label mt-6">PLAYER COUNT</label>
+          <div>
+            <label className="label mt-3">PLAYER COUNT</label>
 
-          <input
-            type="range"
-            min="3"
-            max="9"
-            className="range range-primary"
-            value={players}
-            step={1}
-            onChange={changePlayers}
-          />
-          <div className="w-full flex justify-between text-xs px-2">
-            <div className="flex-col flex items-center">
+            <input
+              type="range"
+              min="3"
+              max="9"
+              className="range range-primary"
+              value={players}
+              step={1}
+              onChange={changePlayers}
+            />
+            <div className="w-full flex justify-between text-xs px-2">
+              <div className="flex-col flex items-center">
+                <span>|</span>
+                <p className="text-sm ">3</p>
+              </div>
               <span>|</span>
-              <p className="text-sm ">3</p>
+              <span>|</span>
+              <div className="flex-col flex items-center">
+                <span>|</span>
+                <p className="text-xs ">6</p>
+              </div>
+              <span>|</span>
+              <span>|</span>
+              <div className="flex-col flex items-center">
+                <span>|</span>
+                <p className="text-sm ">9</p>
+              </div>
             </div>
-            <span>|</span>
-            <span>|</span>
-            <div className="flex-col flex items-center">
+          </div>
+          <div>
+            <label className="label mt-1">QUESTIONS COUNT</label>
+
+            <input
+              type="range"
+              min="5"
+              max="15"
+              className="range range-primary"
+              value={questions}
+              step={1}
+              onChange={changeQuestions}
+            />
+            <div className="w-full flex justify-between text-xs px-2">
+              <div className="flex-col flex items-center">
+                <span>|</span>
+                <p className="text-sm ">5</p>
+              </div>
               <span>|</span>
-              <p className="text-xs ">6</p>
-            </div>
-            <span>|</span>
-            <span>|</span>
-            <div className="flex-col flex items-center">
               <span>|</span>
-              <p className="text-sm ">9</p>
+              <span>|</span>
+              <span>|</span>
+              <div className="flex-col flex items-center">
+                <span>|</span>
+                <p className="text-xs ">10</p>
+              </div>
+              <span>|</span>
+              <span>|</span>
+              <span>|</span>
+              <span>|</span>
+              <div className="flex-col flex items-center">
+                <span>|</span>
+                <p className="text-sm ">15</p>
+              </div>
             </div>
           </div>
           <div>
@@ -132,20 +190,20 @@ function Create() {
                     type="radio"
                     id="time-1"
                     name="timeInSec"
-                    value={20}
+                    value={10}
                     onChange={changeTime}
                     className="hidden peer"
                   />
                   <label
                     htmlFor="time-1"
                     className={
-                      timeInSec == 20
+                      timeInSec == 10
                         ? "btn btn-primary"
                         : "btn btn-outline btn-primary"
                     }
                   >
                     <div className="block ">
-                      <div className="w-full text-xl font-semibold">20s</div>
+                      <div className="w-full text-xl font-semibold">10s</div>
                     </div>
                   </label>
                 </li>
@@ -154,20 +212,20 @@ function Create() {
                     type="radio"
                     id="time-2"
                     name="timeInSec"
-                    value={45}
+                    value={15}
                     onChange={changeTime}
                     className="hidden peer"
                   />
                   <label
                     htmlFor="time-2"
                     className={
-                      timeInSec == 45
+                      timeInSec == 15
                         ? "btn btn-primary"
                         : "btn btn-outline btn-primary"
                     }
                   >
                     <div className="block">
-                      <div className="w-full text-xl font-semibold">45s</div>
+                      <div className="w-full text-xl font-semibold">15s</div>
                     </div>
                   </label>
                 </li>
@@ -176,20 +234,20 @@ function Create() {
                     type="radio"
                     id="time-3"
                     name="timeInSec"
-                    value={60}
+                    value={20}
                     onChange={changeTime}
                     className="hidden peer"
                   />
                   <label
                     htmlFor="time-3"
                     className={
-                      timeInSec == 60
+                      timeInSec == 20
                         ? "btn btn-primary"
                         : "btn btn-outline btn-primary"
                     }
                   >
                     <div className="block">
-                      <div className="w-full text-xl font-semibold">60s</div>
+                      <div className="w-full text-xl font-semibold">20s</div>
                     </div>
                   </label>
                 </li>
