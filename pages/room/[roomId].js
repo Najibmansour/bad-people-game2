@@ -179,6 +179,7 @@ function Rooms() {
   const counterAnimation = {
     hidden: {
       y: "-100vh",
+      zIndex: 999999,
       opacity: 0.1,
       transition: {
         duration: 0.4,
@@ -186,6 +187,7 @@ function Rooms() {
     },
     visible: {
       y: "0",
+      zIndex: 999999,
       opacity: 1,
       transition: {
         duration: 0.6,
@@ -194,7 +196,7 @@ function Rooms() {
     exit: {
       y: "100vh",
       opacity: 0.1,
-
+      zIndex: 999999,
       transition: {
         duration: 0.4,
       },
