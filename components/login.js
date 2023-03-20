@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import LoadingSpinner from "./loadingSpinner";
-import { signInWithRedirect, GoogleAuthProvider, getAuth } from "firebase/auth";
+import {
+  signInWithRedirect,
+  GoogleAuthProvider,
+  getAuth,
+  signInWithPopup,
+} from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 import app from "../firebase-config";
 
@@ -15,12 +20,17 @@ const LoginDiv = () => {
   });
 
   const signIn = async () => {
-    await signInWithRedirect(auth, googleAuth).catch((err) => {
-      console.error(err.message);
-    });
-    const { refreshToken, providerData } = user;
-    localStorage.setItem("user", JSON.stringify(providerData));
-    localStorage.setItem("accessToken", JSON.stringify(refreshToken));
+    const asd = await signInWithPopup(auth, googleAuth)
+      .then((e) => {
+        console.log(e);
+
+        const { refreshToken, providerData } = e;
+        localStorage.setItem("user", JSON.stringify(providerData));
+        localStorage.setItem("accessToken", JSON.stringify(refreshToken));
+      })
+      .catch((err) => {
+        console.error(err.message);
+      });
   };
 
   const signOut = () => {

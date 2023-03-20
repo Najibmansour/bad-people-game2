@@ -37,7 +37,6 @@ function Create() {
       players: [],
       createDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
-      timer: 0,
     };
 
     setDoc(roomRef, roomData);
@@ -71,9 +70,6 @@ function Create() {
     setQuestions(e.target.value);
   }
 
-  function changePlayers(e) {
-    setPlayers(e.target.value);
-  }
   function changeTime(e) {
     setTimeInSec(e.target.value);
   }

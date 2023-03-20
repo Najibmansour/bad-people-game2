@@ -77,8 +77,9 @@ function Rooms() {
             .players.findIndex(
               (player) => player.uid == user.providerData[0].uid
             );
+
           index == -1 ? setCanSelect(true) : null;
-          doc.data().state == 1 ? initGame(doc.data().owner) : null;
+          initGame(doc.data());
         });
       });
       return unsub;
@@ -152,12 +153,17 @@ function Rooms() {
 
   function changeVote(e) {
     setVote(e.target.value);
-    console.log(vote);
+    // console.log(vote);
   }
 
-  function initGame(owner) {
-    if (owner == user.providerData[0].uid) updateDoc(roomRef, { state: 11 }); //state 0:created 1:started 11:start, 2:end, 22:ended
-    start(5000);
+  function initGame(roomsnap) {
+    if (roomsnap.state === 1) {
+      if (roomsnap.owner == user.providerData[0].uid) {
+        updateDoc(roomRef, { state: 11 });
+        console.log(roomsnap.state);
+      } //state 0:created 1:started 11:start, 2:end, 22:ended
+      start(5000);
+    }
   }
 
   function startGameByOwner() {
@@ -170,7 +176,9 @@ function Rooms() {
         date.setSeconds(date.getSeconds() + 5 + roundTime * i)
       );
     }
-    updateDoc(roomRef, { questionsTime: questionTimeArray, state: 1 }); //state 0:created 1:started 11:start, 2:end, 22:ended
+    roomSnapshot.state == 0
+      ? updateDoc(roomRef, { questionsTime: questionTimeArray, state: 1 })
+      : updateDoc(roomRef, { questionsTime: questionTimeArray }); //state 0:created 1:started 11:start, 2:end, 22:ended
   }
 
   const counterAnimation = {
@@ -206,11 +214,12 @@ function Rooms() {
         <>
           <div className="mx-3 mt-3 flex justify-between">
             <p className="card-title">{roomSnapshot.roomName}</p>
-            {roomSnapshot.owner == user.providerData[0].uid && (
-              <button onClick={startGameByOwner} className="btn btn-primary">
-                start
-              </button>
-            )}
+            {roomSnapshot.owner == user.providerData[0].uid &&
+              roomSnapshot.state == 0 && (
+                <button onClick={startGameByOwner} className="btn btn-primary">
+                  start
+                </button>
+              )}
           </div>
 
           <div className="flex justify-center fixed w-[100vw] h-[200vh]  ">
@@ -249,7 +258,7 @@ function Rooms() {
                     key={question}
                     initial={{ y: "50%", opacity: 0, scale: 0.25 }}
                     animate={{ y: 0, opacity: 1, scale: 1 }}
-                    className=" w-[55vw]  shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
+                    className="rounded-xl w-[55vw] shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
                     onClick={() => {
                       setQuestion(`${questions[getRandomInt(0, 159)]}`);
                     }}
