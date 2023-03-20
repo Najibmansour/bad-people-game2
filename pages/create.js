@@ -28,7 +28,7 @@ function Create() {
     const roomRef = doc(database, "room", `${uid}`);
     // console.log(uid);
     const roomData = {
-      state: "started",
+      state: 0, //state 0:created 1:started 11:start, 2:end, 22:ended
       owner: uid,
       maxPlayers: parseInt(players),
       roomName: `${roomName}`,
@@ -37,6 +37,7 @@ function Create() {
       players: [],
       createDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
+      timer: 0,
     };
 
     setDoc(roomRef, roomData);

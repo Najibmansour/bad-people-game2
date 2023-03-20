@@ -7,7 +7,6 @@ import {
   query,
   where,
   updateDoc,
-  deleteDoc,
   arrayRemove,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
@@ -29,9 +28,8 @@ import AVApedo from "../../public/avatars/pedo.webp";
 import AVAwaiter from "../../public/avatars/waiter.webp";
 import LoadingSpinner from "../../components/loadingSpinner";
 import { fetchUserAccessToken } from "../../utils/fetchUserAccessToken";
-import { ThemeSwitcher } from "../../components/themeSwitcher";
 import { motion, AnimatePresence } from "framer-motion";
-import { unstable_renderSubtreeIntoContainer } from "react-dom";
+import useCountDown from "react-countdown-hook";
 
 const questions = require("../../public/questions.json");
 
@@ -39,6 +37,7 @@ function Rooms() {
   const router = useRouter();
   const roomId = router.query.roomId;
   const roomsCollectionRef = collection(database, "room");
+  const [timeLeft, { start, pause, resume, reset }] = useCountDown(5000, 1000);
 
   const [user, loading, error] = useAuthState(getAuth());
   const [canSelect, setCanSelect] = useState(false);
@@ -51,8 +50,6 @@ function Rooms() {
   const [question, setQuestion] = useState(
     "If a dog chews shoes whose shoes does he choose?"
   );
-  const [counter, setCounter] = useState(0);
-
   const useUnload = (fn) => {
     const cb = React.useRef(fn);
 
@@ -67,7 +64,6 @@ function Rooms() {
 
   useEffect(() => {
     const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
-    const indexes = [];
     const accessToken = fetchUserAccessToken();
     if (!accessToken) {
       router.push("/");
@@ -75,12 +71,14 @@ function Rooms() {
       const unsub = onSnapshot(q, (snapshot) => {
         snapshot.docs.forEach((doc) => {
           setRoomSnapshot(doc.data());
+
           const index = doc
             .data()
             .players.findIndex(
               (player) => player.uid == user.providerData[0].uid
             );
           index == -1 ? setCanSelect(true) : null;
+          doc.data().state == 1 ? initGame(doc.data().owner) : null;
         });
       });
       return unsub;
@@ -128,8 +126,6 @@ function Rooms() {
   };
 
   const addTest = () => {
-    // console.log();
-
     const uid = Date.now();
     const newPlayer = {
       uid: `${uid}`,
@@ -159,7 +155,12 @@ function Rooms() {
     console.log(vote);
   }
 
-  function startGame() {
+  function initGame(owner) {
+    if (owner == user.providerData[0].uid) updateDoc(roomRef, { state: 11 }); //state 0:created 1:started 11:start, 2:end, 22:ended
+    start(5000);
+  }
+
+  function startGameByOwner() {
     const roundTime = roomSnapshot.roundTime;
     const date = new Date();
     const startTime = date.setSeconds(date.getSeconds() + 5);
@@ -169,17 +170,13 @@ function Rooms() {
         date.setSeconds(date.getSeconds() + 5 + roundTime * i)
       );
     }
-    console.log(questionTimeArray);
-  }
-
-  function counterTimer() {
-    setCounter(counter + 1);
+    updateDoc(roomRef, { questionsTime: questionTimeArray, state: 1 }); //state 0:created 1:started 11:start, 2:end, 22:ended
   }
 
   const counterAnimation = {
     hidden: {
       y: "-100vh",
-      zIndex: 999999,
+      zIndex: 9999,
       opacity: 0.1,
       transition: {
         duration: 0.4,
@@ -187,7 +184,7 @@ function Rooms() {
     },
     visible: {
       y: "0",
-      zIndex: 999999,
+      zIndex: 9999,
       opacity: 1,
       transition: {
         duration: 0.6,
@@ -196,7 +193,7 @@ function Rooms() {
     exit: {
       y: "100vh",
       opacity: 0.1,
-      zIndex: 999999,
+      zIndex: 9999,
       transition: {
         duration: 0.4,
       },
@@ -210,24 +207,26 @@ function Rooms() {
           <div className="mx-3 mt-3 flex justify-between">
             <p className="card-title">{roomSnapshot.roomName}</p>
             {roomSnapshot.owner == user.providerData[0].uid && (
-              <button onClick={counterTimer} className="btn btn-primary">
+              <button onClick={startGameByOwner} className="btn btn-primary">
                 start
               </button>
             )}
           </div>
 
-          <div className="flex justify-center  w-[100vw] h-[200vh] modal-open z-9999">
+          <div className="flex justify-center fixed w-[100vw] h-[200vh]  ">
             <AnimatePresence>
-              <motion.div
-                key={counter}
-                variants={counterAnimation}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="text-6xl text-warning font-mono fixed  mt-[40vh]"
-              >
-                {counter}
-              </motion.div>
+              {timeLeft != 0 && (
+                <motion.div
+                  key={timeLeft}
+                  variants={counterAnimation}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-6xl text-warning font-mono fixed  mt-[40vh]"
+                >
+                  {timeLeft.toString()[0]}
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
@@ -245,12 +244,12 @@ function Rooms() {
             ) : null}
             <div>
               <div>
-                <div className="flex justify-center  items-center mb-12  -z-50">
+                <div className="flex justify-center  items-center mb-12 ">
                   <motion.div
                     key={question}
                     initial={{ y: "50%", opacity: 0, scale: 0.25 }}
                     animate={{ y: 0, opacity: 1, scale: 1 }}
-                    className=" w-[55vw]  shadow-xl h-[45vh] bg-gray-100 text-gray-800 "
+                    className=" w-[55vw]  shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
                     onClick={() => {
                       setQuestion(`${questions[getRandomInt(0, 159)]}`);
                     }}
