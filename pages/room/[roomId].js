@@ -47,9 +47,9 @@ function Rooms() {
 
   const [avatarId, setAvatarId] = useState(0);
   const [vote, setVote] = useState(0);
-  const [question, setQuestion] = useState(
-    "If a dog chews shoes whose shoes does he choose?"
-  );
+  const [question, setQuestion] = useState(0);
+  const [questionIndex, setQuestionIndex] = useState(0);
+
   const useUnload = (fn) => {
     const cb = React.useRef(fn);
 
@@ -85,6 +85,21 @@ function Rooms() {
       return unsub;
     }
   }, [router.isReady, user]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const questions = roomSnapshot.questions;
+      const questionsTime = roomSnapshot.questionsTime;
+      if (Date.now() >= questionsTime[questionIndex]) {
+        setQuestion(questions[questionIndex]);
+        setQuestionIndex(questionIndex + 1);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [roomSnapshot]);
 
   const delPlayer = () => {
     const user = fetchUserData();
