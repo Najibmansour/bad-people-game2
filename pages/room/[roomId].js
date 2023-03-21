@@ -49,6 +49,7 @@ function Rooms() {
   const [vote, setVote] = useState(0);
   const [question, setQuestion] = useState(0);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [upd, setUpd] = useState(false);
 
   const useUnload = (fn) => {
     const cb = React.useRef(fn);
@@ -88,18 +89,26 @@ function Rooms() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      setUpd((upd) => !upd);
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(roomSnapshot != undefined);
+
+    if (roomSnapshot != undefined) {
       const questions = roomSnapshot.questions;
       const questionsTime = roomSnapshot.questionsTime;
       if (Date.now() >= questionsTime[questionIndex]) {
         setQuestion(questions[questionIndex]);
         setQuestionIndex(questionIndex + 1);
       }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [roomSnapshot]);
+    }
+  }, [upd]);
 
   const delPlayer = () => {
     const user = fetchUserData();
@@ -186,7 +195,7 @@ function Rooms() {
     const date = new Date();
     const startTime = date.setSeconds(date.getSeconds() + 5);
     const questionTimeArray = [];
-    for (let i = 0; i < roomSnapshot.questions.length; i++) {
+    for (let i = 0; i < roomSnapshot.questions.length + 1; i++) {
       questionTimeArray.push(
         date.setSeconds(date.getSeconds() + 5 + roundTime * i)
       );
@@ -274,12 +283,9 @@ function Rooms() {
                     initial={{ y: "50%", opacity: 0, scale: 0.25 }}
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     className="rounded-xl w-[55vw] shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
-                    onClick={() => {
-                      setQuestion(`${questions[getRandomInt(0, 159)]}`);
-                    }}
                   >
                     <p className="p-4 flex items-center text-xl leading-7 font-semibold">
-                      {question}
+                      {questions[question]}
                     </p>
                     <div className="card-actions"></div>
                   </motion.div>
