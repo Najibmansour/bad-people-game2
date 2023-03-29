@@ -7,14 +7,13 @@ import {
   query,
   where,
   updateDoc,
-  arrayRemove,
 } from "firebase/firestore";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import ChoseAvatar from "../../components/chooseAvatar";
-import { firebase, database } from "../../firebase-config";
+import { database } from "../../firebase-config";
 import { fetchUserData } from "../../utils/fetchUserData";
 import AVAfat from "../../public/avatars/fat.webp";
 import AVAalcoholic from "../../public/avatars/alcoholic.webp";
@@ -30,6 +29,7 @@ import LoadingSpinner from "../../components/loadingSpinner";
 import { fetchUserAccessToken } from "../../utils/fetchUserAccessToken";
 import { motion, AnimatePresence } from "framer-motion";
 import useCountDown from "react-countdown-hook";
+import useUpdateNotUndefinedEffect from "../../utils/useUpdateNotUndefinedEffectHook";
 
 const questions = require("../../public/questions.json");
 
@@ -37,7 +37,7 @@ function Rooms() {
   const router = useRouter();
   const roomId = router.query.roomId;
   const roomsCollectionRef = collection(database, "room");
-  const [timeLeft, { start, pause, resume, reset }] = useCountDown(5000, 1000);
+  const [timeLeft, { start }] = useCountDown(5000, 1000);
 
   const [user, loading, error] = useAuthState(getAuth());
   const [canSelect, setCanSelect] = useState(false);
@@ -46,22 +46,11 @@ function Rooms() {
   const roomRef = doc(database, "room", `${roomId}`);
 
   const [avatarId, setAvatarId] = useState(0);
-  const [vote, setVote] = useState(0);
-  const [question, setQuestion] = useState(0);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [upd, setUpd] = useState(false);
+  const [question, setQuestion] = useState();
+  const [gameState, setGameState] = useState();
 
-  const useUnload = (fn) => {
-    const cb = React.useRef(fn);
-
-    React.useEffect(() => {
-      const onUnload = cb.current;
-      window.addEventListener("beforeunload", onUnload);
-      return () => {
-        window.removeEventListener("beforeunload", onUnload);
-      };
-    }, [cb]);
-  };
+  const vote = useRef();
+  const index = useRef(0);
 
   useEffect(() => {
     const q = query(roomsCollectionRef, where("__name__", "==", `${roomId}`));
@@ -72,12 +61,22 @@ function Rooms() {
       const unsub = onSnapshot(q, (snapshot) => {
         snapshot.docs.forEach((doc) => {
           setRoomSnapshot(doc.data());
-
+          setGameState(doc.data().state);
           const index = doc
             .data()
             .players.findIndex(
               (player) => player.uid == user.providerData[0].uid
             );
+
+          if (vote.current == undefined && doc.data().players.length > 1) {
+            const arr = doc
+              .data()
+              .players.filter(
+                (player) => player.uid != user.providerData[0].uid
+              );
+            console.log(arr);
+            vote.current = arr[0].uid;
+          }
 
           index == -1 ? setCanSelect(true) : null;
           initGame(doc.data());
@@ -87,41 +86,43 @@ function Rooms() {
     }
   }, [router.isReady, user]);
 
-  useEffect(() => {
+  useUpdateNotUndefinedEffect(() => {
+    // let index = 0;
+    let votes = {};
     const interval = setInterval(() => {
-      setUpd((upd) => !upd);
+      const questions = roomSnapshot.questions;
+      const questionsTime = roomSnapshot.questionsTime;
+      if (Date.now() >= questionsTime[index.current]) {
+        if (roomSnapshot.state == 11) {
+          setQuestion(questions[index.current]);
+          index.current = index.current + 1;
+          console.log("index:", index.current);
+          console.log("vote:", vote.current);
+          updateDoc(roomRef, {
+            [`answers.${index.current}`]: arrayUnion({
+              name: user.providerData[0].displayName,
+              uid: user.providerData[0].uid,
+              vote: vote.current,
+            }),
+          });
+        }
+      }
+      if (
+        index == questions.length &&
+        user.providerData[0].uid == roomSnapshot.owner
+      ) {
+        const obj = {
+          name: user.providerData[0].displayName,
+          uid: user.providerData[0].uid,
+        };
+        // updateDoc(roomRef, { state: 22 });
+      }
     }, 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
-
-  useEffect(() => {
-    console.log(roomSnapshot != undefined);
-
-    if (roomSnapshot != undefined) {
-      const questions = roomSnapshot.questions;
-      const questionsTime = roomSnapshot.questionsTime;
-      if (Date.now() >= questionsTime[questionIndex]) {
-        setQuestion(questions[questionIndex]);
-        setQuestionIndex(questionIndex + 1);
-      }
-    }
-  }, [upd]);
-
-  const delPlayer = () => {
-    const user = fetchUserData();
-
-    const existingPlayer = {
-      uid: `${user[0].uid}`,
-      name: `${user[0].displayName}`,
-      avatarID: avatarId,
-    };
-    updateDoc(roomRef, {
-      players: arrayRemove(existingPlayer),
-    });
-  };
+  }, [roomSnapshot]);
 
   const getRandomInt = (min, max) => {
     min = Math.ceil(min);
@@ -150,18 +151,6 @@ function Rooms() {
     addPlayer(roomSnapshot);
   };
 
-  const addTest = () => {
-    const uid = Date.now();
-    const newPlayer = {
-      uid: `${uid}`,
-      name: `TEST PLAYER`,
-      avatarID: "5",
-    };
-    updateDoc(roomRef, {
-      players: arrayUnion(newPlayer),
-    });
-  };
-
   const images = [
     AVAalcoholic,
     AVAbong,
@@ -176,29 +165,30 @@ function Rooms() {
   ];
 
   function changeVote(e) {
-    setVote(e.target.value);
-    // console.log(vote);
+    vote.current = e.target.value;
   }
 
   function initGame(roomsnap) {
     if (roomsnap.state === 1) {
-      if (roomsnap.owner == user.providerData[0].uid) {
-        updateDoc(roomRef, { state: 11 });
-        console.log(roomsnap.state);
-      } //state 0:created 1:started 11:start, 2:end, 22:ended
+      setTimeout(() => {
+        if (roomsnap.owner == user.providerData[0].uid) {
+          updateDoc(roomRef, { state: 11 }); //state 0:created 1:started 11:start, 2:end, 22:ended})
+          console.log(roomsnap.state);
+        }
+      }, 5000);
+
       start(5000);
     }
   }
 
   function startGameByOwner() {
-    const roundTime = roomSnapshot.roundTime;
-    const date = new Date();
-    const startTime = date.setSeconds(date.getSeconds() + 5);
+    let date = new Date();
+    date = date.getTime();
     const questionTimeArray = [];
     for (let i = 0; i < roomSnapshot.questions.length + 1; i++) {
-      questionTimeArray.push(
-        date.setSeconds(date.getSeconds() + 5 + roundTime * i)
-      );
+      let newDate = date + roomSnapshot.roundTime * 1000;
+      date = newDate;
+      questionTimeArray.push(newDate);
     }
     roomSnapshot.state == 0
       ? updateDoc(roomRef, { questionsTime: questionTimeArray, state: 1 })
@@ -278,59 +268,71 @@ function Rooms() {
             <div>
               <div>
                 <div className="flex justify-center  items-center mb-12 ">
-                  <motion.div
-                    key={question}
-                    initial={{ y: "50%", opacity: 0, scale: 0.25 }}
-                    animate={{ y: 0, opacity: 1, scale: 1 }}
-                    className="rounded-xl w-[55vw] shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
-                  >
-                    <p className="p-4 flex items-center text-xl leading-7 font-semibold">
-                      {questions[question]}
-                    </p>
-                    <div className="card-actions"></div>
-                  </motion.div>
+                  {gameState == 11 && question != null && (
+                    <motion.div
+                      key={question}
+                      initial={{ y: "50%", opacity: 0, scale: 0.25 }}
+                      animate={{ y: 0, opacity: 1, scale: 1 }}
+                      className="rounded-xl w-[55vw] shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
+                    >
+                      <p className="p-4 flex items-center text-xl leading-7 font-semibold">
+                        {question}
+                      </p>
+                      <div className="card-actions"></div>
+                    </motion.div>
+                  )}
                 </div>
-
-                <div className="grid grid-cols-[repeat(4,minmax(10px,90px))] gap-2 m-3 ">
-                  {roomSnapshot.players.map((player, i) => {
-                    if (player.uid != user.providerData[0].uid) {
-                      return (
-                        <div
-                          className={
-                            vote
-                              ? vote == player.uid
-                                ? "rounded-lg shadow-xl p-2 bg-base-300 h-full animate-pulse filter"
-                                : "rounded-lg shadow-xl p-2 bg-base-300 h-full  filter brightness-75"
-                              : "rounded-lg shadow-xl p-2 bg-base-300 h-full filter "
-                          }
-                          key={`avatar-${i}`}
-                        >
-                          <label id={i} htmlFor={`avatar-${i}`}>
-                            <Image
-                              className="rounded-md "
-                              src={images[player.avatarID]}
-                              alt={`avatar-${i}`}
-                              key={`avatar-${i}`}
+                {gameState != 22 ? (
+                  <div className="grid grid-cols-[repeat(4,minmax(10px,90px))] gap-2 m-3 ">
+                    {roomSnapshot.players.map((player, i) => {
+                      if (player.uid != user.providerData[0].uid) {
+                        return (
+                          <div
+                            className={
+                              vote.current
+                                ? vote.current == player.uid
+                                  ? "rounded-lg shadow-xl p-2 bg-base-300 h-full animate-pulse filter"
+                                  : "rounded-lg shadow-xl p-2 bg-base-300 h-full  filter brightness-75"
+                                : "rounded-lg shadow-xl p-2 bg-base-300 h-full filter "
+                            }
+                            key={`avatar-${i}`}
+                          >
+                            <label id={i} htmlFor={`avatar-${i}`}>
+                              <Image
+                                className="rounded-md "
+                                src={images[player.avatarID]}
+                                alt={`avatar-${i}`}
+                                key={`avatar-${i}`}
+                              />
+                              <div>
+                                <h2 className="truncate my-1">
+                                  {player.name.split(" ")[0]}
+                                </h2>
+                              </div>
+                            </label>
+                            <input
+                              type="radio"
+                              id={`avatar-${i}`}
+                              name="avatar"
+                              value={player.uid}
+                              onClick={changeVote}
+                              className="hidden"
                             />
-                            <div>
-                              <h2 className="truncate my-1">
-                                {player.name.split(" ")[0]}
-                              </h2>
-                            </div>
-                          </label>
-                          <input
-                            type="radio"
-                            id={`avatar-${i}`}
-                            name="avatar"
-                            value={player.uid}
-                            onChange={changeVote}
-                            className="hidden"
-                          />
-                        </div>
-                      );
-                    }
-                  })}
-                </div>
+                          </div>
+                        );
+                      }
+                    })}
+                  </div>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      updateDoc(roomRef, { state: 0 });
+                    }}
+                  >
+                    RESTART
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -342,6 +344,10 @@ function Rooms() {
       )}
     </div>
   );
+}
+
+function updateCard(roomSnapshot) {
+  useEffect(() => {}, [roomSnapshot]);
 }
 
 export default Rooms;

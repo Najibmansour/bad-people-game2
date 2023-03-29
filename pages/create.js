@@ -26,18 +26,26 @@ function Create() {
     const user = fetchUserData();
     const uid = user[0].uid;
     const roomRef = doc(database, "room", `${uid}`);
-    // console.log(uid);
+    const answ = new Object();
+    const quest = genQuestionsArray(questions);
+
+    for (var i = 0; i < quest.length; i++) {
+      answ[i] = [];
+    }
+
     const roomData = {
       state: 0, //state 0:created 1:started 11:start, 2:end, 22:ended
       owner: uid,
       maxPlayers: parseInt(players),
       roomName: `${roomName}`,
-      questions: genQuestionsArray(questions),
+      questions: quest,
       questionsTime: [],
+      answers: answ,
       players: [],
       createDate: Timestamp.fromMillis(Date.now()),
       roundTime: parseInt(timeInSec),
     };
+    console.table(roomData);
 
     setDoc(roomRef, roomData);
     setLOADING(false);
