@@ -87,8 +87,6 @@ function Rooms() {
   }, [router.isReady, user]);
 
   useUpdateNotUndefinedEffect(() => {
-    // let index = 0;
-    let votes = {};
     const interval = setInterval(() => {
       const questions = roomSnapshot.questions;
       const questionsTime = roomSnapshot.questionsTime;
@@ -276,7 +274,7 @@ function Rooms() {
                       className="rounded-xl w-[55vw] shadow-xl h-[45vh] bg-gray-100 text-gray-800 -z-50  "
                     >
                       <p className="p-4 flex items-center text-xl leading-7 font-semibold">
-                        {question}
+                        {questions[question]}
                       </p>
                       <div className="card-actions"></div>
                     </motion.div>
